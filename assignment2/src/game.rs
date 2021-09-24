@@ -136,28 +136,128 @@ impl Game {
     }
 
     /// Remove expired foods
-    fn update_food_expired(&mut self) {
-        unimplemented!();
+    pub fn update_food_expired(&mut self) {
+        let mut new_foods: Vec<Food> = Vec::new();
+        for food in &self.foods {
+            if food.time >= 0.1 {
+                let new_food = Food {
+                    x: food.x,
+                    y: food.y,
+                    time: food.time,
+                };
+                new_foods.push(new_food);
+            }
+        }
+        self.foods = new_foods;
     }
 
     /// Subtract food time parameter
     fn update_food_life(&mut self) {
-        unimplemented!();
+        let mut new_foods = Vec::new();
+        for food in &self.foods {
+            let new_food = Food {
+                x: food.x,
+                y: food.y,
+                time: food.time - FOOD_DECAY_SPEED,
+            };
+            new_foods.push(new_food);
+        }
+        self.foods = new_foods;
     }
 
     /// Check if the snake is eating any food
     fn check_eating(&mut self) {
-        unimplemented!();
+        let mut point = (0, 0);
+        for food in self.foods.iter() {
+            if self.snake.head_position() == (food.x, food.y) {
+                point = (food.x, food.y);
+                self.snake.increase_length();
+            }
+        }
+        self.remove_food(point.0, point.1);
+    }
+
+    fn remove_food(&mut self, x: i32, y: i32) {
+        let mut new_foods: Vec<Food> = Vec::new();
+        for food in self.foods.iter() {
+            if food.x != x && food.y != y {
+                let new_food = Food {
+                    x: food.x,
+                    y: food.y,
+                    time: food.time,
+                };
+                new_foods.push(new_food);
+            }
+        }
+        self.foods = new_foods;
     }
 
     /// Check if the snake is alive
     fn check_snake_alive(&self) -> bool {
-        unimplemented!();
+        let mut newpos = self.snake.head_position();
+        let dir = self.snake.head_direction();
+
+        if dir == Direction::Left {
+            newpos = (newpos.0 - 1, newpos.1);
+        } else if dir == Direction::Right {
+            newpos = (newpos.0 + 1, newpos.1);
+        } else if dir == Direction::Up {
+            newpos = (newpos.0, newpos.1 + 1);
+        } else {
+            newpos = (newpos.0, newpos.1 - 1);
+        }
+        if self.overlaps(newpos) || self.is_oob(newpos) {
+            return false;
+        }
+        true
+    }
+
+    fn is_oob(&self, pos: (i32, i32)) -> bool {
+        if pos.0 > 0 && pos.0 < self.width - 1 && pos.1 > 0 && pos.1 < self.height - 1 {
+            return false;
+        }
+        true
+    }
+
+    fn overlaps(&self, pos: (i32, i32)) -> bool {
+        for block in self.snake.get_body() {
+            if block.x == pos.0 && block.y == pos.1 {
+                return true;
+            }
+        }
+        false
     }
 
     /// Add food at NUM_FOODS number of places
     fn update_food(&mut self) {
-        unimplemented!();
+        let mut num_loops = NUM_FOODS - self.foods.len();
+        let mut all_foods: Vec<Food> = Vec::new();
+        let mut new_foods: Vec<Food> = Vec::new();
+
+        for food in self.foods.iter() {
+            let f = Food {
+                x: food.x,
+                y: food.y,
+                time: food.time,
+            };
+            all_foods.push(f);
+        }
+
+        while num_loops > 0 {
+            let mut thr = thread_rng();
+            let newx: i32 = thr.gen();
+            let newy: i32 = thr.gen();
+
+            let new_food = Food {
+                x: newx,
+                y: newy,
+                time: INIT_FOOD_LIFE,
+            };
+            new_foods.push(new_food);
+            num_loops -= 1;
+        }
+        all_foods.append(&mut new_foods);
+        self.foods = all_foods;
     }
 }
 

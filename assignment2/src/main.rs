@@ -5,9 +5,8 @@ mod game;
 mod snake;
 mod utils;
 
-use piston_window::*;
-
 use game::Game;
+use piston_window::*;
 
 const BACK_COLOR: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
 
