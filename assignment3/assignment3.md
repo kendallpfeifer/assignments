@@ -3,7 +3,7 @@ CMSC388Z Homework #3
 
 ## Read Before You Start
 1. This assignment is due on **October 8th, 2021 at noon**.
-2. Please submit your `src/main.rs`, `src/lib.rs` and `tests/integrated_tests.rs` onto [**GradeScope**](https://www.gradescope.com/courses/291105) electronically following the [instructions](https://help.gradescope.com/article/ccbpppziu9-student-submit-work).
+2. Please submit your `src/main.rs` and `src/lib.rs` onto [**GradeScope**](https://www.gradescope.com/courses/291105) electronically following the [instructions](https://help.gradescope.com/article/ccbpppziu9-student-submit-work).
 3. Please make sure you are using the latest version of Rust.
     ```bash
     $ rustup update
@@ -11,16 +11,17 @@ CMSC388Z Homework #3
     rustc 1.55.0 (c8dfcfe04 2021-09-06)
     ```
 4. Please make sure your program doesn't contain any warning or error when submitting.
-5. Public tests are provided. Make sure your program is passing these before you submit them.
-6. Please feel free to refer to any *appropriate* online resource. If you are not sure, you can email Dongze (dhe17 *at* umd *dot* edu) or Chase (ckanipe *at* terpmail *dot* umd *dot* edu) for clarification.
-7. This is an individual project, please do not discuss any code-related questions with anyone.
-8. [This feedback survey](https://forms.gle/kon3fKNB8qyXf2AB9) will be open throughout the semester, if you have any comments or suggestions for the course, please feel free to report them to us *anonymously*. 
-9. We highly recommend using VS code + [rust_analyzer](https://marketplace.visualstudio.com/items?itemName=matklad.rust-analyzer) extension. But it is OK if you have your preferred code editor.
+5. Please feel free to refer to any *appropriate* online resource. If you are not sure, you can email Dongze (dhe17 *at* umd *dot* edu) or Chase (ckanipe *at* terpmail *dot* umd *dot* edu) for clarification.
+6. This is an individual project, please do not discuss any code-related questions with anyone.
+7. [This feedback survey](https://forms.gle/kon3fKNB8qyXf2AB9) will be open throughout the semester, if you have any comments or suggestions for the course, please feel free to report them to us *anonymously*. 
+8. We highly recommend using VS code + [rust_analyzer](https://marketplace.visualstudio.com/items?itemName=matklad.rust-analyzer) extension. But it is OK if you have your preferred code editor.
+9. **Compile your code frequently!** As the function signatures contain the expected input and output, I recommend you to write a unit testing before you implement each function, and test and run your code frequently when you are writing code. If you don't compile your code frequently, it is possible that you make some mistakes in the very beginning but you cannot realize it until you compile your program in the very end. 
+10. In this assignment you may use the `match` keyword when handling errors. To be specific, when handling a `Result` value, I want you to check what the value is, and continue if it is a `Ok()` or write a customized error message if it is a `Err()`. This is why I define the return type of some functions as `Result<T, &'static str>`. To be specific, I only require you to process the `T` and `E` of `Result` differently. You don't need to worry about differnt variants of `E`. However, I want to emphasize that even all modules have their own error types. For example, `std::io::Error`, `clap::Error`, etc. If you want to handle the variants of a `E` explicitly **in the future** (you don't need to do this in this assignment), pleaes remember that the cases in `match e` correspond to possible variants of `e` as determined by its type. Notice that you can also use the `is_err()` method of `Result` and `is_none()` method of `Option` when handling the errors.
 
 ## Please use Piazza to ask questions!
 ## Introduction
 
-In this assignment, you need to implement a command-line utility that is similar to the Linux command `find` **from scratch**. That is, your program should be able to recursively search an input directory `root_dir` and all its subdirectories to find files that match some given [regex patterns](https://en.wikipedia.org/wiki/Regular_expression). You will find [this chapter](https://doc.rust-lang.org/book/ch12-00-an-io-project.html) in TRPL very useful.
+In this assignment, you need to implement a command-line utility that is similar to the Linux command `find` **from scratch**. That is, your program should be able to recursively search an input directory `root_dir` and all its subdirectories to find files that match some given [regex patterns](https://en.wikipedia.org/wiki/Regular_expression). The word "pattern" in this assignment merely means the regex pattern, and it has nothing to do with the "pattern" in "pattern matching". You will find [this chapter](https://doc.rust-lang.org/book/ch12-00-an-io-project.html) in TRPL very useful.
 
 Through this assignment, you will practice 
 1. Basic interaction with the operating system
@@ -32,16 +33,16 @@ Through this assignment, you will practice
 Note that the error handling strategy we used in this assignment is very basic. The purpose is to only help you understanding the concept. For more advanced error handling strategies, please refer to [this chapter](https://doc.rust-lang.org/rust-by-example/error.html) in Rust By Example.
 ## Overview
 
-Your program will find the files in a given set of directories or their sub-directories whose name matches at least one of the given [regex patterns](https://en.wikipedia.org/wiki/Regular_expression) and (optionally) whose size is over a given size threshold. By default, the path of the matched file names will be printed via stdout. Optionally, if users specify an output file path, the path of the matched files will be written to that file. For example,
+Your program will find the files in a given set of directories or their sub-directories when their name matches at least one of the given [regex patterns](https://en.wikipedia.org/wiki/Regular_expression) and (optionally) when their size is over a given size threshold. By default, the path of the matched file names will be printed via stdout. Optionally, if the user specifies an output file path, the path of the matched files will be written to that file. For example, suppose you have executed `cargo build` and you are in the root directory of your project:
 
 ```bash
-$ rust_find --patterns ".*\.rs" --dirs "./src" "./tests"
+$ target/debug/rust_find --patterns ".*\.rs" --dirs "./src" "./tests"
 ./src/lib.rs
 ./src/main.rs
 ./tests/integrated_tests.rs
 ```
 
-This command will return all files which end with `.rs` in the directory `./src` and `./tests`, and all their sub-directories. We will use Rust's regular expression engine, so the syntax for regular expressions may be different from what you're used to in other languages or shells.
+This command will return all files that end with `.rs` in the directory `./src` and `./tests`, and all their sub-directories. We will use Rust's regular expression engine, so the syntax for regular expressions may be different from what you're used to in other languages or shells.
 
 If you would like to run your program when implementing, you can do
 
@@ -51,7 +52,7 @@ $ cargo run -- --patterns ".*\.rs" --dirs "./src"
 ./src/main.rs
 ```
 
-Notice that the `--` between `cargo run` and the program's arguments is to help `cargo` to recognize the arguments passing to it and the program's arguments. You may specify only one value for each argument when doing `cargo run`, here I use `./src` and `*./.rs`.
+Notice that the `--` between `cargo run` and the program's arguments is to help `cargo` to recognize the arguments passing to it and the program's arguments. You may specify only one value for each argument when doing `cargo run`, here I use `./src` and `*.\.rs`.
 
 ## Implementation details
 
@@ -136,10 +137,10 @@ fn main() {
                 .takes_value(true) // argument if true or flag if false.
                 .required(false), // this is an optional argument
         )
-        // TODO: specify --dir here
-        // TODO: specify --patterns here
+        // TODO: define --dirs here
+        // TODO: define --size here
         .get_matches();
-        // .get_matches_from(vec!["rust-find", "--patterns=.*/.rs", "--output=./tests.out"]);
+        // .get_matches_from(vec!["rust-find", "--patterns=.*\\.rs", "--output=./tests.out"]);
 
 
     let args = Config::from_args(&matches); // will be defined later
@@ -150,7 +151,7 @@ fn main() {
 }
 ```
 
-When writing unit testing for your command-line interface, you need to copy and paste the whole statement of defining `matches` in your test function, and use `.get_matches_from()` function to take the arguments from the vector you provided. 
+When writing unit testing for your command-line interface, you need to copy and paste the whole statement of defining `matches` in your test function, and use `.get_matches_from()` function instead of `get_matches()` to take the arguments from the vector you provided. As backslashes are special characters in Rust, when you use get_matches_from(), you need to use a backslash to escape another backslash, like `--patterns=.*\\.rs`.
 
 ### The `run()` function
 
@@ -219,13 +220,13 @@ impl Config { // you need to use explit lifetime here as well
 }
 ```
 
-When accessing data in `ArgMatches`, you can use `values_of()` for arguments with multiple values and `value_of()` for arguments with single value. Notice that `values_of()` returns a `Result` while `value_of()` returns a `Option`.
+When accessing data in `ArgMatches`, you can use `values_of()` for arguments with multiple values and `value_of()` for arguments with single value. Notice that `values_of()`  and `value_of()` return an `Option`.
 
 To use this struct in `src/main.rs`, you need to specify `use lib::Config` in the top lines of `src/main.rs`. For more useful methods of `ArgMatches`, please refer to its [document](https://docs.rs/clap/2.33.3/clap/struct.ArgMatches.html).
 
 ### Parsing `Config` fields
 
-Next, to make the four arguments in the `Config` fields useful, we need to parse them into their desired types. For example, we want the patterns to be in `Regex` type, the paths in `PathBuf` type, and the size in `u64` type. So, we need to implement some methods for the `Config` struct to parse those arguments. You need to [handle the errors](http://www.sheshbabu.com/posts/rust-error-handling/#:~:text=also%3A%20unwrap_or_else%20%2C%20unwrap_or_default-,Bubble%20up%20the%20error,error%20to%20the%20caller%20function.&text=There%20are%20two%20function%20calls,json%20\)%20that%20return%20Result%20values) carefully in this step. ( Please use the `match` keyword to handle the error appropriately. Don't use `.unwrap()` all the time! ) For example, when one of the input patterns is invalid, instead of letting your program panic, you should print a [warning message](https://doc.rust-lang.org/book/ch12-06-writing-to-stderr-instead-of-stdout.html)  and move to the next pattern. You want to return `Err()` only if none of the patterns is valid. For optional arguments such as `output`, when the given output file path is invalid, you should just ignore the input argument and print a warning message.
+Next, to make the four arguments in the `Config` fields useful, we need to parse them into their desired types. For example, we want the patterns to be in `Regex` type, the paths in `PathBuf` type, and the size in `u64` type. So, we need to implement some methods for the `Config` struct to parse those arguments. You need to [handle the errors](http://www.sheshbabu.com/posts/rust-error-handling/#:~:text=also%3A%20unwrap_or_else%20%2C%20unwrap_or_default-,Bubble%20up%20the%20error,error%20to%20the%20caller%20function.&text=There%20are%20two%20function%20calls,json%20\)%20that%20return%20Result%20values) carefully in this step. ( Please use the `match` keyword or any appropriate ways to handle the error appropriately. Don't use `.unwrap()` all the time! ) For example, when one of the input patterns is invalid, instead of letting your program panic, you should print a [warning message](https://doc.rust-lang.org/book/ch12-06-writing-to-stderr-instead-of-stdout.html)  and move to the next pattern. You want to return `Err()` only if none of the patterns is valid. For optional arguments such as `output`, when the given output file path is invalid, you should just ignore the input argument and print a warning message.
 
 src/lib.rs
 
@@ -330,14 +331,14 @@ With the matched files in hand, we can now export the filenames via stdout or to
 
 ```rust
 use std::io::Write;
-pub fn display(files: &[MyFile], output: &mut Option<File>){
-    implemented!()
+pub fn display(files: &[MyFile], output: &mut Option<File>) -> Option<Vec<String>> {
+    unimplemented!()
 }
 ```
 
 ## Notes
 
-I want to emphasize that the error handling strategy used in this assignment is only for helping you to understand the idea. For more advanced error handling strategies, please refer to [this chapter](https://doc.rust-lang.org/rust-by-example/error.html) in Rust By Example.
+I want to emphasize that the error handling strategy used in this assignment is only for helping you understand the idea. For more advanced error handling strategies, please refer to [this chapter](https://doc.rust-lang.org/rust-by-example/error.html) in Rust By Example.
 
 For command-line interface, you can find a series of examples and tutorials in `clap-rs`'s [GitHub repo](https://github.com/clap-rs/clap). There is another popular crate `StructOpt` built upon `clap-rs` for command-line argument parsing. They will be integrated in the near future.
 
@@ -349,6 +350,6 @@ $ cargo check
 $ cargo fmt
 ```
 
-Please submit you `src/main.rs`, `src/lib.rs` and `tests/integrated_tests.rs` onto [GradeScope](https://www.gradescope.com/courses/291105). If you cannot access the GradeScope course page, please let us know.
+Please submit you `src/main.rs` and `src/lib.rs` onto [GradeScope](https://www.gradescope.com/courses/291105). If you cannot access the GradeScope course page, please let us know.
 
 
