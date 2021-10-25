@@ -61,26 +61,81 @@ impl List {
         }
     }
 
-    
     fn rand_typ_node(data: u32) -> Rc<RefCell<Box<dyn Node>>> {
-        todo!();
+        let b = thread_rng().gen::<bool>();
+        if (b) {
+            Rc::new(RefCell::new(Box::new(BigNode {
+                data,
+                prev: None,
+                next: None,
+            })))
+        } else {
+            Rc::new(RefCell::new(Box::new(SmallNode {
+                data,
+                prev: None,
+                next: None,
+            })))
+        }
     }
 
-
     pub fn push_front(&mut self, data: u32) {
-        todo!();
+        let new_node = List::rand_typ_node(data);
+        match self.head.take() {
+            None => {
+                self.head = Some(new_node.clone());
+                self.tail = Some(new_node);
+            }
+            Some(x) => {
+                *x.borrow_mut().prev() = Some(new_node.clone());
+                *new_node.borrow_mut().next() = Some(x);
+                self.head = Some(new_node);
+            }
+        };
     }
 
     pub fn push_back(&mut self, data: u32) {
-        todo!();
+        let new_node = List::rand_typ_node(data);
+        match self.tail.take() {
+            Some(x) => {
+                *x.borrow_mut().next() = Some(new_node.clone());
+                *new_node.borrow_mut().prev() = Some(x);
+                self.tail = Some(new_node);
+            }
+            None => {
+                self.head = Some(new_node.clone());
+                self.tail = Some(new_node);
+            }
+        }
     }
 
     pub fn pop_back(&mut self) -> Option<u32> {
-        todo!();
+        self.tail.take().map(|old_t| {
+            match old_t.borrow_mut().prev().take() {
+                Some(x) => {
+                    x.borrow_mut().next().take();
+                    self.tail = Some(x);
+                }
+                None => {
+                    self.head.take();
+                }
+            }
+            *Rc::try_unwrap(old_t).ok().unwrap().into_inner().data()
+        })
     }
 
     pub fn pop_front(&mut self) -> Option<u32> {
-        todo!();
+        self.head.take().map(|old_h| {
+            match old_h.borrow_mut().next().take() {
+                Some(x) => {
+                    x.borrow_mut().prev().take();
+                    self.head = Some(x);
+                }
+                None => {
+                    self.tail.take();
+                }
+            }
+            *Rc::try_unwrap(old_h).ok().unwrap().into_inner().data()
+        })
     }
 
     pub fn into_iter_list(self) -> IntoIterList {

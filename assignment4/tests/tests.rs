@@ -12,6 +12,7 @@ fn test_length() {
 
     list.push_unique(3).unwrap();
     assert!(list.len() == 3);
+    print!("{}\n", list.len());
 
     list.pop();
     assert!(list.len() == 2);
@@ -33,12 +34,12 @@ fn test_none() {
     let mut list = LinkedList::new();
 
     list.push(1);
+    print!("{}\n", list.len());
     list.pop();
+    print!("{}\n", list.len());
 
     assert_eq!(list.pop(), None);
 }
-
-
 
 #[test]
 fn test_errors() {
@@ -48,7 +49,7 @@ fn test_errors() {
 
     match list.push_unique(2) {
         Ok(()) => assert!(false),
-        Err(_) => assert!(true)
+        Err(_) => assert!(true),
     }
 }
 
@@ -58,5 +59,4 @@ fn test_print() {
     list.push(100);
 
     println!("{}", list);
-
 }
